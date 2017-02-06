@@ -1,0 +1,17 @@
+{
+  "resources": [
+    {
+      "name": "Contacts",
+      "explanation": null,
+      "examples": [
+        {
+          "description": "Listing contacts",
+          "link": "contacts/listing_contacts.json",
+          "groups": "all",
+          "route": "/contacts",
+          "method": "get"
+        }
+      ]
+    }
+  ]
+}

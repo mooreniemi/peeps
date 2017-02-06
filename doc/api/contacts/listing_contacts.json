@@ -1,0 +1,44 @@
+{
+  "resource": "Contacts",
+  "resource_explanation": null,
+  "http_method": "GET",
+  "route": "/contacts",
+  "description": "Listing contacts",
+  "explanation": null,
+  "parameters": [
+
+  ],
+  "response_fields": [
+
+  ],
+  "requests": [
+    {
+      "request_method": "GET",
+      "request_path": "/contacts",
+      "request_body": null,
+      "request_headers": {
+        "Host": "example.org",
+        "Cookie": ""
+      },
+      "request_query_parameters": {
+      },
+      "request_content_type": null,
+      "response_status": 200,
+      "response_status_text": "OK",
+      "response_body": "{\"data\":[]}",
+      "response_headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-XSS-Protection": "1; mode=block",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Type": "application/vnd.api+json",
+        "ETag": "W/\"e0234245cb00aa260ccfa99a9a0b235e\"",
+        "Cache-Control": "max-age=0, private, must-revalidate",
+        "X-Request-Id": "ee76a71a-556c-4e7a-b66c-1f2650e0a0e9",
+        "X-Runtime": "0.008828",
+        "Content-Length": "11"
+      },
+      "response_content_type": "application/vnd.api+json",
+      "curl": null
+    }
+  ]
+}
