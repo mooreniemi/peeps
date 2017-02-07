@@ -3,6 +3,7 @@ require 'ostruct'
 
 class ChocletyGenerator
   attr_reader :response_body, :subject
+  attr_accessor :relationships
 
   SPLITTER = /(GET|POST|PUT|PATCH|DELETE) \/(.*)/
   GRAPH_OUTPUT = "./spec/support/choclety/graph.json"
@@ -14,9 +15,14 @@ class ChocletyGenerator
 
   def output_links
     current_api_spec = JSON.parse(File.read(GRAPH_OUTPUT))
-    links_to = JSON.parse(response_body)['data'].
-                 collect { |e| e['relationships'] }.
-                 collect(&:keys).flatten
+    data = JSON.parse(response_body)['data']
+    links_to = if data.is_a? Array
+      @relationships = data.collect { |e| e['relationships'] }
+      relationships.collect(&:keys).flatten
+    else
+      @relationships = data['relationships']
+      relationships.keys.flatten
+    end
     links = link_relations
 
     current_api_spec["state_transitions"] = [] if current_api_spec["state_transitions"].nil?
@@ -56,8 +62,10 @@ class ChocletyGenerator
   end
 
   def link_relations
-    Hash[*JSON.parse(response_body)['data'].
-            collect { |e| e['relationships'] }.
-            collect { |r| {"#{r.keys.first}" => r.values.first['links']['self']} }]
+    if relationships.is_a? Array
+      Hash[*relationships.collect { |r| {"#{r.keys.first}" => r.values.first['links']['self']} }]
+    else
+      { "#{relationships.keys.first}" => relationships.values.first['links']['self'] }
+    end
   end
 end
