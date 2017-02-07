@@ -2,10 +2,17 @@ require 'rails_helper'
 require 'rspec_api_documentation/dsl'
 require_relative '../support/choclety/choclety'
 
+def jsonish_attributes(record)
+  pairs = record.attributes.except("id", "created_at", "updated_at")
+  dash_keys = pairs.keys.map(&:dasherize)
+  Hash[dash_keys.zip(pairs.values)]
+end
+
 resource 'Contacts' do
   after(:each) do
-    output_links
+    ChocletyGenerator.new(response_body.dup, subject.dup).output_links
   end
+
   get '/contacts' do
     let!(:contact) { create(:contact) }
     let(:contact_representation) {
