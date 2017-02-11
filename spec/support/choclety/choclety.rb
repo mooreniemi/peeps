@@ -5,7 +5,8 @@ class ChocletyGenerator
   attr_reader :response_body, :subject
   attr_accessor :relationships
 
-  SPLITTER = /(GET|POST|PUT|PATCH|DELETE) \/(.*)/
+  SUBJECT_SPLITTER = /(GET|POST|PUT|PATCH|DELETE) \/(.*)/
+  PATH_SPLITTER = /.+(\/:.+)$/
   GRAPH_OUTPUT = "./spec/support/choclety/graph.json"
 
   def initialize(response_body, subject)
@@ -49,7 +50,6 @@ class ChocletyGenerator
     end
     current_api_spec["state_representations"] = current_api_spec["state_representations"].uniq
 
-
     File.open(GRAPH_OUTPUT, "w+") { |file| file.write(current_api_spec.to_json) }
 
     p "Wrote choclety output to #{GRAPH_OUTPUT}"
@@ -57,8 +57,16 @@ class ChocletyGenerator
 
   private
   def parse(verb_path)
-    verb, path = SPLITTER.match(verb_path)[1], SPLITTER.match(verb_path)[2]
-    OpenStruct.new({verb: verb, path: path})
+    verb, path = SUBJECT_SPLITTER.match(verb_path)[1], SUBJECT_SPLITTER.match(verb_path)[2]
+    if ends_in_id?(path)
+      # assumes immediate nesting is collection name
+      path = path.split('/')[-2].singularize
+    end
+    OpenStruct.new({ verb: verb, path: path })
+  end
+
+  def ends_in_id?(p)
+    !!(p =~ PATH_SPLITTER)
   end
 
   def link_relations
