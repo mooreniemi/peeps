@@ -3,7 +3,7 @@ require 'rspec_api_documentation/dsl'
 require_relative '../support/choclety/choclety'
 
 def jsonish_attributes(record)
-  pairs = record.attributes.except("id", "created_at", "updated_at")
+  pairs = record.attributes.except('id', 'created_at', 'updated_at')
   dash_keys = pairs.keys.map(&:dasherize)
   Hash[dash_keys.zip(pairs.values)]
 end
@@ -15,15 +15,15 @@ resource 'Contacts' do
 
   get '/contacts' do
     let!(:contact) { create(:contact) }
-    let(:contacts_representation) {
+    let(:contacts_representation) do
       {
         data: [
           {
-            id: "1",
+            id: '1',
             links: {},
             attributes: jsonish_attributes(contact),
             relationships: {
-              "phone-numbers" => {
+              'phone-numbers' => {
                 links: {
                   self: URI.regexp,
                   related: URI.regexp
@@ -33,7 +33,7 @@ resource 'Contacts' do
           }
         ]
       }
-    }
+    end
 
     example 'Listing contacts' do
       do_request
@@ -45,15 +45,15 @@ resource 'Contacts' do
   get '/contacts/:id' do
     let!(:contact) { create(:contact) }
     let(:id) { contact.id }
-    let(:contact_representation) {
+    let(:contact_representation) do
       {
         data:
           {
-            id: "1",
+            id: '1',
             links: {},
             attributes: jsonish_attributes(contact),
             relationships: {
-              "phone-numbers" => {
+              'phone-numbers' => {
                 links: {
                   self: URI.regexp,
                   related: URI.regexp
@@ -63,7 +63,7 @@ resource 'Contacts' do
           }
 
       }
-    }
+    end
 
     example 'Showing contact' do
       do_request

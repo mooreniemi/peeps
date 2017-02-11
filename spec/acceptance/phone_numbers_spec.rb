@@ -5,7 +5,7 @@ require_relative '../support/choclety/choclety'
 def jsonish_attributes(record)
   # FIXME: oddly jsonapi default isnt surfacing contact_id
   # so we're just ignoring right now to keep test clean
-  pairs = record.attributes.except("id", "contact_id", "created_at", "updated_at")
+  pairs = record.attributes.except('id', 'contact_id', 'created_at', 'updated_at')
   dash_keys = pairs.keys.map(&:dasherize)
   Hash[dash_keys.zip(pairs.values)]
 end
@@ -17,15 +17,15 @@ resource 'Phone numbers' do
 
   get '/phone-numbers' do
     let!(:phone_number) { create(:phone_number) }
-    let(:contact_representation) {
+    let(:contact_representation) do
       {
         data: [
           {
-            id: "1",
+            id: '1',
             links: {},
             attributes: jsonish_attributes(phone_number),
             relationships: {
-              "contact" => {
+              'contact' => {
                 links: {
                   self: URI.regexp,
                   related: URI.regexp
@@ -35,7 +35,7 @@ resource 'Phone numbers' do
           }
         ]
       }
-    }
+    end
 
     example 'Listing phone_numbers' do
       do_request

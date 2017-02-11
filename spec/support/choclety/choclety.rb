@@ -7,7 +7,7 @@ class ChocletyGenerator
 
   SUBJECT_SPLITTER = /(GET|POST|PUT|PATCH|DELETE) \/(.*)/
   PATH_SPLITTER = /.+(\/:.+)$/
-  GRAPH_OUTPUT = "./spec/support/choclety/graph.json"
+  GRAPH_OUTPUT = './spec/support/choclety/graph.json'.freeze
 
   def initialize(response_body, subject)
     @response_body = response_body
@@ -18,20 +18,20 @@ class ChocletyGenerator
     current_api_spec = JSON.parse(File.read(GRAPH_OUTPUT))
     data = JSON.parse(response_body)['data']
     links_to = if data.is_a? Array
-      @relationships = data.collect { |e| e['relationships'] }
-      relationships.collect(&:keys).flatten
-    else
-      @relationships = data['relationships']
-      relationships.keys.flatten
+                 @relationships = data.collect { |e| e['relationships'] }
+                 relationships.collect(&:keys).flatten
+               else
+                 @relationships = data['relationships']
+                 relationships.keys.flatten
     end
     links = link_relations
 
-    current_api_spec["state_transitions"] = [] if current_api_spec["state_transitions"].nil?
+    current_api_spec['state_transitions'] = [] if current_api_spec['state_transitions'].nil?
     links_to.each do |l|
       uri = URI(links[l])
       # in hash rocket format so uniqueness persists across, because parsing has string keys
       # while current entry would have symbol keys unless we manually make them strings
-      current_api_spec["state_transitions"] << {
+      current_api_spec['state_transitions'] << {
         'source' => parse(subject).path,
         'target' => l,
         'verb' => 'get',
@@ -39,30 +39,32 @@ class ChocletyGenerator
         'url' => uri.to_s
       }
     end
-    current_api_spec["state_transitions"] = current_api_spec["state_transitions"].uniq
+    current_api_spec['state_transitions'] = current_api_spec['state_transitions'].uniq
 
-    current_api_spec["state_representations"] = [] if current_api_spec["state_representations"].nil?
+    current_api_spec['state_representations'] = [] if current_api_spec['state_representations'].nil?
     links_to.each do |l|
       # in hash rocket format so uniqueness persists across, because parsing has string keys
       # while current entry would have symbol keys unless we manually make them strings
-      current_api_spec["state_representations"] << { 'name' => parse(subject).path }
-      current_api_spec["state_representations"] << { 'name' => l }
+      current_api_spec['state_representations'] << { 'name' => parse(subject).path }
+      current_api_spec['state_representations'] << { 'name' => l }
     end
-    current_api_spec["state_representations"] = current_api_spec["state_representations"].uniq
+    current_api_spec['state_representations'] = current_api_spec['state_representations'].uniq
 
-    File.open(GRAPH_OUTPUT, "w+") { |file| file.write(current_api_spec.to_json) }
+    File.open(GRAPH_OUTPUT, 'w+') { |file| file.write(current_api_spec.to_json) }
 
     p "Wrote choclety output to #{GRAPH_OUTPUT}"
   end
 
   private
+
   def parse(verb_path)
-    verb, path = SUBJECT_SPLITTER.match(verb_path)[1], SUBJECT_SPLITTER.match(verb_path)[2]
+    verb = SUBJECT_SPLITTER.match(verb_path)[1]
+    path = SUBJECT_SPLITTER.match(verb_path)[2]
     if ends_in_id?(path)
       # assumes immediate nesting is collection name
       path = path.split('/')[-2].singularize
     end
-    OpenStruct.new({ verb: verb, path: path })
+    OpenStruct.new(verb: verb, path: path)
   end
 
   def ends_in_id?(p)
@@ -71,9 +73,9 @@ class ChocletyGenerator
 
   def link_relations
     if relationships.is_a? Array
-      Hash[*relationships.collect { |r| {"#{r.keys.first}" => r.values.first['links']['self']} }]
+      Hash[*relationships.collect { |r| { r.keys.first.to_s => r.values.first['links']['self'] } }]
     else
-      { "#{relationships.keys.first}" => relationships.values.first['links']['self'] }
+      { relationships.keys.first.to_s => relationships.values.first['links']['self'] }
     end
   end
 end

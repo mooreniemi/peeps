@@ -18,13 +18,13 @@ group :development, :test do
   gem 'pry'
   gem 'pry-rails'
 
-  gem 'rspec-rails', '~> 3.5'
-  gem 'faker'
   gem 'factory_girl_rails'
+  gem 'faker'
   gem 'rspec-json_expectations'
+  gem 'rspec-rails', '~> 3.5'
 
-  gem 'rspec_api_documentation'
   gem 'raddocs'
+  gem 'rspec_api_documentation'
 end
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
