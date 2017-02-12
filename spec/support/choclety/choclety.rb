@@ -7,6 +7,7 @@ class ChocletyGenerator
 
   SUBJECT_SPLITTER = /(GET|POST|PUT|PATCH|DELETE) \/(.*)/
   PATH_SPLITTER = /.+(\/:.+)$/
+  CONTAINS_RELATIONSHIPS = /(relationships\/.*)$/
   GRAPH_OUTPUT = './spec/support/choclety/graph.json'.freeze
 
   def initialize(response_body, subject)
@@ -17,20 +18,10 @@ class ChocletyGenerator
   def output_links
     current_api_spec = JSON.parse(File.read(GRAPH_OUTPUT))
     data = JSON.parse(response_body)['data']
-    links_to = if data.is_a? Array
-                 @relationships = data.collect { |e| e['relationships'] }
-                 relationships = @relationships.collect(&:keys).flatten
-                 @types = data.collect { |e| e['type'] }.uniq.map(&:singularize)
-                 relationships + types
-               else
-                 @relationships = data['relationships']
-                 @types = [data['type']].map(&:singularize)
-                 @relationships.keys.flatten + types
-               end
+    links_to = links_to(data)
     links = link_relations
 
     current_api_spec['state_transitions'] = [] if current_api_spec['state_transitions'].nil?
-    binding.pry
     links_to.each do |l|
       uri = URI(links[l])
       # in hash rocket format so uniqueness persists across, because parsing has string keys
@@ -39,7 +30,7 @@ class ChocletyGenerator
         'source' => parse(subject).path,
         'target' => l,
         'verb' => 'get',
-        'link_relation' => uri.path,
+        'link_relation' => abbreviate(uri.path),
         'url' => uri.to_s
       }
     end
@@ -54,7 +45,7 @@ class ChocletyGenerator
     end
     current_api_spec['state_representations'] = current_api_spec['state_representations'].uniq
 
-    File.open(GRAPH_OUTPUT, 'w+') { |file| file.write(JSON.pretty_generate(current_api_spec)) }
+    File.write(GRAPH_OUTPUT, JSON.pretty_generate(current_api_spec))
 
     p "Wrote choclety output to #{GRAPH_OUTPUT}"
   end
@@ -75,6 +66,18 @@ class ChocletyGenerator
     !!(p =~ PATH_SPLITTER)
   end
 
+  def abbreviate(lr_path)
+    if contains_relationships?(lr_path)
+      lr_path.split('/')[-2..-1].join('/')
+    else
+      lr_path
+    end
+  end
+
+  def contains_relationships?(p)
+    !!(p =~ CONTAINS_RELATIONSHIPS)
+  end
+
   def link_relations
     if relationships.is_a? Array
       Hash[*relationships.collect { |r| { r.keys.first.to_s => r.values.first['links']['self'] } }].merge(
@@ -84,6 +87,19 @@ class ChocletyGenerator
         relationships.keys.first.to_s => relationships.values.first['links']['self'],
         types.first.to_s => "http://example.org/#{types.first.pluralize}/1"
       }
+    end
+  end
+
+  def links_to(data)
+    if data.is_a? Array
+      @relationships = data.collect { |e| e['relationships'] }
+      relationships = @relationships.collect(&:keys).flatten
+      @types = data.collect { |e| e['type'] }.uniq.map(&:singularize)
+      relationships + types
+    else
+      @relationships = data['relationships']
+      @types = [data['type']].map(&:singularize)
+      @relationships.keys.flatten + types
     end
   end
 end

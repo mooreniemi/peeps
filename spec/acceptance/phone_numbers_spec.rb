@@ -17,7 +17,7 @@ resource 'Phone numbers' do
 
   get '/phone-numbers' do
     let!(:phone_number) { create(:phone_number) }
-    let(:contact_representation) do
+    let(:phone_number_representation) do
       {
         data: [
           {
@@ -40,7 +40,36 @@ resource 'Phone numbers' do
     example 'Listing phone_numbers' do
       do_request
       expect(status).to eq(200)
-      expect(response_body).to include_json(contact_representation)
+      expect(response_body).to include_json(phone_number_representation)
+    end
+  end
+
+  get '/phone-numbers/:id' do
+    let!(:phone_number) { create(:phone_number) }
+    let(:id) { phone_number.id }
+    let(:phone_number_representation) do
+      {
+        data:
+          {
+            id: '1',
+            links: {},
+            attributes: jsonish_attributes(phone_number),
+            relationships: {
+              'contact' => {
+                links: {
+                  self: URI.regexp,
+                  related: URI.regexp
+                }
+              }
+            }
+          }
+      }
+    end
+
+    example 'Showing phone-number' do
+      do_request
+      expect(status).to eq(200)
+      expect(response_body).to include_json(phone_number_representation)
     end
   end
 end
