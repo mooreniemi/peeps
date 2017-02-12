@@ -3,7 +3,7 @@ require 'ostruct'
 
 class ChocletyGenerator
   attr_reader :response_body, :subject
-  attr_accessor :relationships
+  attr_accessor :relationships, :types
 
   SUBJECT_SPLITTER = /(GET|POST|PUT|PATCH|DELETE) \/(.*)/
   PATH_SPLITTER = /.+(\/:.+)$/
@@ -19,14 +19,18 @@ class ChocletyGenerator
     data = JSON.parse(response_body)['data']
     links_to = if data.is_a? Array
                  @relationships = data.collect { |e| e['relationships'] }
-                 relationships.collect(&:keys).flatten
+                 relationships = @relationships.collect(&:keys).flatten
+                 @types = data.collect { |e| e['type'] }.uniq.map(&:singularize)
+                 relationships + types
                else
                  @relationships = data['relationships']
-                 relationships.keys.flatten
-    end
+                 @types = [data['type']].map(&:singularize)
+                 @relationships.keys.flatten + types
+               end
     links = link_relations
 
     current_api_spec['state_transitions'] = [] if current_api_spec['state_transitions'].nil?
+    binding.pry
     links_to.each do |l|
       uri = URI(links[l])
       # in hash rocket format so uniqueness persists across, because parsing has string keys
@@ -50,7 +54,7 @@ class ChocletyGenerator
     end
     current_api_spec['state_representations'] = current_api_spec['state_representations'].uniq
 
-    File.open(GRAPH_OUTPUT, 'w+') { |file| file.write(current_api_spec.to_json) }
+    File.open(GRAPH_OUTPUT, 'w+') { |file| file.write(JSON.pretty_generate(current_api_spec)) }
 
     p "Wrote choclety output to #{GRAPH_OUTPUT}"
   end
@@ -73,9 +77,13 @@ class ChocletyGenerator
 
   def link_relations
     if relationships.is_a? Array
-      Hash[*relationships.collect { |r| { r.keys.first.to_s => r.values.first['links']['self'] } }]
+      Hash[*relationships.collect { |r| { r.keys.first.to_s => r.values.first['links']['self'] } }].merge(
+        Hash[*types.collect { |t| { t => "http://example.org/#{t.pluralize}/1" } }])
     else
-      { relationships.keys.first.to_s => relationships.values.first['links']['self'] }
+      {
+        relationships.keys.first.to_s => relationships.values.first['links']['self'],
+        types.first.to_s => "http://example.org/#{types.first.pluralize}/1"
+      }
     end
   end
 end

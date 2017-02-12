@@ -20,6 +20,7 @@ resource 'Contacts' do
         data: [
           {
             id: '1',
+            type: 'contacts',
             links: {},
             attributes: jsonish_attributes(contact),
             relationships: {
@@ -50,6 +51,7 @@ resource 'Contacts' do
         data:
           {
             id: '1',
+            type: 'contacts',
             links: {},
             attributes: jsonish_attributes(contact),
             relationships: {
@@ -61,7 +63,6 @@ resource 'Contacts' do
               }
             }
           }
-
       }
     end
 
